@@ -19,7 +19,7 @@ The wrapper is built for both simple and advanced Angular integrations:
 - Dynamic event wiring through a single `events` input map.
 - Lifecycle signal via `(ready)` with access to the initialized Gantt instance.
 - Angular component rendering in templates through `templateComponent(...)`.
-- Advanced features through `customLightbox`, `groupTasks`, `calendars`, `markers`, and `resourceFilter`.
+- Advanced features through `customLightbox`, `groupTasks`, `filter`, `calendars`, `markers`, and `resourceFilter`.
 
 ## Basic Wrapper Usage
 
@@ -85,7 +85,7 @@ Use [Data Binding and State Management Basics](integrations/angular/state/state-
 
 ## `events` Map vs `(ready)`
 
-Angular Gantt uses an `events` map for [Gantt event handlers](api/overview/events-overview.md) and a separate `(ready)` output for one-time lifecycle access.
+Angular Gantt uses an `events` map for[Gantt event handlers](api/overview/events-overview.md) and a separate `(ready)` output for one-time lifecycle access.
 
 ~~~ts
 import { Component } from '@angular/core';
@@ -182,9 +182,33 @@ templates = {
 
 This lets Angular render components inside DOM regions managed by Gantt.
 
-### Resource filtering and grouped/resource layouts
+### Filtering
 
-Use `resourceFilter` to filter resource panel rows when your config enables a resource store/layout.
+Use the `filter` input to specify which tasks should be displayed:
+
+~~~ts
+import type { TaskFilter } from '@dhtmlx/trial-angular-gantt';
+
+taskFilter: TaskFilter = null;
+
+showCompleted(): void {
+  this.taskFilter = (task) => !!task.completed;
+}
+
+resetFilter(): void {
+  this.taskFilter = null;
+}
+~~~
+
+~~~html
+<dhx-gantt
+  [tasks]="tasks"
+  [links]="links"
+  [filter]="taskFilter">
+</dhx-gantt>
+~~~
+
+To filter resources in the [Resource Panel](guides/resource-management.md), use the `resourceFilter` input:
 
 ~~~html
 <dhx-gantt
@@ -222,7 +246,7 @@ The public Angular samples cover these wrapper scenarios:
 
 - `basic-initialization`: baseline inputs and `data.save`.
 - `configs-and-templates`: runtime `config`/`templates` updates, markers, plugins.
-- `template-components`: `templateComponent(...)`, `events`, `ready`, dynamic UI in grid/task templates.
+- `template-components`: `templateComponent(...)`, `filter`, `ready`, dynamic UI in grid/task templates.
 - `custom-form`: `customLightbox` integration.
 - `resource-panel`: resources, assignments, resource layouts, `resourceFilter`, `(ready)` instance access.
 - `calendars`: `calendars`, `templates`, locale, work-time highlighting.
