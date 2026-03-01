@@ -68,23 +68,25 @@ This is the core reducer-like step for grouped Gantt changes.
 
 Create `src/app/gantt-state/gantt-rx-store.service.ts`.
 
+The wrapper exports `SerializedTask` and `SerializedLink` — use these to type tasks and links held outside of gantt (store state, API responses, initial data). Dates can be `Date` objects or strings.
+
 ~~~ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
-import type { AngularGanttDataConfig, BatchChanges } from '@dhtmlx/trial-angular-gantt';
+import type { AngularGanttDataConfig, BatchChanges, SerializedTask, SerializedLink } from '@dhtmlx/trial-angular-gantt';
 import { applyBatchChanges } from './apply-batch-changes';
 
 export type ZoomLevel = 'day' | 'month' | 'year';
 
 interface Snapshot {
-  tasks: any[];
-  links: any[];
+  tasks: SerializedTask[];
+  links: SerializedLink[];
   zoomLevel: ZoomLevel;
 }
 
 interface StoreState {
-  tasks: any[];
-  links: any[];
+  tasks: SerializedTask[];
+  links: SerializedLink[];
   zoomLevel: ZoomLevel;
   config: any;
   past: Snapshot[];
@@ -92,8 +94,8 @@ interface StoreState {
 }
 
 interface ViewModel {
-  tasks: any[];
-  links: any[];
+  tasks: SerializedTask[];
+  links: SerializedLink[];
   zoomLevel: ZoomLevel;
   canUndo: boolean;
   canRedo: boolean;

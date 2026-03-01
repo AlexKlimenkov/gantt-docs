@@ -39,7 +39,7 @@ Create `src/stores/ganttStore.ts`:
 
 ~~~ts title="src/stores/ganttStore.ts"
 import { defineStore } from "pinia";
-import type { BatchChanges, Link, Task } from "@dhtmlx/trial-vue-gantt";
+import type { BatchChanges, SerializedLink, SerializedTask } from "@dhtmlx/trial-vue-gantt";
 
 type ZoomLevel = "day" | "month" | "year";
 
@@ -67,14 +67,14 @@ const zoomLevels = [
   }
 ];
 
-function applyBatchChanges(tasks: Task[], links: Link[], changes: BatchChanges) {
+function applyBatchChanges(tasks: SerializedTask[], links: SerializedLink[], changes: BatchChanges) {
   let nextTasks = [...tasks];
   let nextLinks = [...links];
 
   for (const change of changes.tasks || []) {
-    if (change.action === "create") nextTasks.push(change.data as Task);
+    if (change.action === "create") nextTasks.push(change.data as SerializedTask);
     if (change.action === "update") {
-      nextTasks = nextTasks.map(t => String(t.id) === String(change.id) ? change.data as Task : t);
+      nextTasks = nextTasks.map(t => String(t.id) === String(change.id) ? change.data as SerializedTask : t);
     }
     if (change.action === "delete") {
       nextTasks = nextTasks.filter(t => String(t.id) !== String(change.id));
@@ -82,9 +82,9 @@ function applyBatchChanges(tasks: Task[], links: Link[], changes: BatchChanges) 
   }
 
   for (const change of changes.links || []) {
-    if (change.action === "create") nextLinks.push(change.data as Link);
+    if (change.action === "create") nextLinks.push(change.data as SerializedLink);
     if (change.action === "update") {
-      nextLinks = nextLinks.map(l => String(l.id) === String(change.id) ? change.data as Link : l);
+      nextLinks = nextLinks.map(l => String(l.id) === String(change.id) ? change.data as SerializedLink : l);
     }
     if (change.action === "delete") {
       nextLinks = nextLinks.filter(l => String(l.id) !== String(change.id));
@@ -96,8 +96,8 @@ function applyBatchChanges(tasks: Task[], links: Link[], changes: BatchChanges) 
 
 export const useGanttStore = defineStore("gantt", {
   state: () => ({
-    tasks: [] as Task[],
-    links: [] as Link[],
+    tasks: [] as SerializedTask[],
+    links: [] as SerializedLink[],
     zoomLevel: "day" as ZoomLevel
   }),
   getters: {
@@ -192,23 +192,24 @@ Do not enable `gantt.plugins({ undo: true })` in this mode.
 
 ### 5.1 Replace The Store With A History Version
 
-Replace the store from step 2 with this version:
+Replace the store from step 2 with this version.
+It keeps state typed as `SerializedTask[]` / `SerializedLink[]` and avoids `as any` casts in date cloning.
 
 ~~~ts title="src/stores/ganttStore.ts"
 import { defineStore } from "pinia";
-import type { BatchChanges, Link, Task } from "@dhtmlx/trial-vue-gantt";
+import type { BatchChanges, SerializedLink, SerializedTask } from "@dhtmlx/trial-vue-gantt";
 
 type ZoomLevel = "day" | "month" | "year";
 
 type Snapshot = {
-  tasks: Task[];
-  links: Link[];
+  tasks: SerializedTask[];
+  links: SerializedLink[];
   zoomLevel: ZoomLevel;
 };
 
 type HistoryState = {
-  tasks: Task[];
-  links: Link[];
+  tasks: SerializedTask[];
+  links: SerializedLink[];
   zoomLevel: ZoomLevel;
   past: Snapshot[];
   future: Snapshot[];
@@ -239,14 +240,14 @@ const zoomLevels = [
   }
 ];
 
-function applyBatchChanges(tasks: Task[], links: Link[], changes: BatchChanges) {
+function applyBatchChanges(tasks: SerializedTask[], links: SerializedLink[], changes: BatchChanges) {
   let nextTasks = [...tasks];
   let nextLinks = [...links];
 
   for (const change of changes.tasks || []) {
-    if (change.action === "create") nextTasks.push(change.data as Task);
+    if (change.action === "create") nextTasks.push(change.data as SerializedTask);
     if (change.action === "update") {
-      nextTasks = nextTasks.map(t => String(t.id) === String(change.id) ? change.data as Task : t);
+      nextTasks = nextTasks.map(t => String(t.id) === String(change.id) ? change.data as SerializedTask : t);
     }
     if (change.action === "delete") {
       nextTasks = nextTasks.filter(t => String(t.id) !== String(change.id));
@@ -254,9 +255,9 @@ function applyBatchChanges(tasks: Task[], links: Link[], changes: BatchChanges) 
   }
 
   for (const change of changes.links || []) {
-    if (change.action === "create") nextLinks.push(change.data as Link);
+    if (change.action === "create") nextLinks.push(change.data as SerializedLink);
     if (change.action === "update") {
-      nextLinks = nextLinks.map(l => String(l.id) === String(change.id) ? change.data as Link : l);
+      nextLinks = nextLinks.map(l => String(l.id) === String(change.id) ? change.data as SerializedLink : l);
     }
     if (change.action === "delete") {
       nextLinks = nextLinks.filter(l => String(l.id) !== String(change.id));
@@ -266,19 +267,19 @@ function applyBatchChanges(tasks: Task[], links: Link[], changes: BatchChanges) 
   return { tasks: nextTasks, links: nextLinks };
 }
 
-const cloneDate = (value: unknown) => {
+const cloneDate = (value: Date | string | undefined): Date | string | undefined => {
   if (value instanceof Date) return new Date(value.getTime());
   return value;
 };
 
-const cloneTask = (task: Task): Task => {
-  const next: Task = { ...task };
-  (next as any).start_date = cloneDate((task as any).start_date);
-  (next as any).end_date = cloneDate((task as any).end_date);
+const cloneTask = (task: SerializedTask): SerializedTask => {
+  const next: SerializedTask = { ...task };
+  next.start_date = cloneDate(task.start_date);
+  next.end_date = cloneDate(task.end_date);
   return next;
 };
 
-const cloneLink = (link: Link): Link => ({ ...link });
+const cloneLink = (link: SerializedLink): SerializedLink => ({ ...link });
 
 const createSnapshot = (state: HistoryState): Snapshot => ({
   tasks: state.tasks.map(cloneTask),
@@ -288,8 +289,8 @@ const createSnapshot = (state: HistoryState): Snapshot => ({
 
 export const useGanttStore = defineStore("gantt", {
   state: () => ({
-    tasks: [] as Task[],
-    links: [] as Link[],
+    tasks: [] as SerializedTask[],
+    links: [] as SerializedLink[],
     zoomLevel: "day" as ZoomLevel,
     past: [] as Snapshot[],
     future: [] as Snapshot[],
@@ -418,6 +419,21 @@ You now have a Pinia-based integration where:
 - `VueGantt` re-renders from store state
 - undo/redo can be added without switching ownership to the Gantt instance
 
+## Common Pitfalls
+
+- Replacing store state with stale API snapshots after chart edits
+- Using `data.save` for high-volume operations when `batchSave` is a better fit
+- Mixing store ownership with direct instance mutations and not reconciling state
+- Enabling the built-in Gantt undo plugin together with store-level history
+
+## Alignment With Public Sample
+
+This tutorial matches the same store-driven approach used in:
+
+- `vue/samples-public/src/stores/ganttStore.ts`
+- `vue/samples-public/src/examples/state-management/Demo.vue`
+- `vue/tests/cypress/e2e/public/007-state-management.cy.ts`
+- `vue/samples-public/src/examples/shared/useDemoBatchState.ts`
 
 ## What To Read Next
 

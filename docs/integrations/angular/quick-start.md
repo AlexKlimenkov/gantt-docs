@@ -62,10 +62,14 @@ If you later move the Gantt CSS import (or overrides for internal Gantt classes 
 
 ## 4. Add Demo Data
 
-Create `src/app/demo-data.ts`:
+Create `src/app/demo-data.ts`.
+
+The wrapper exports `SerializedTask` and `SerializedLink` — the recommended types for task/link data held outside gantt. Dates can be strings or `Date` objects.
 
 ~~~ts
-export const tasks = [
+import type { SerializedTask, SerializedLink } from '@dhtmlx/trial-angular-gantt';
+
+export const tasks: SerializedTask[] = [
   {
     id: 1,
     text: 'Office itinerancy',
@@ -94,7 +98,7 @@ export const tasks = [
   },
 ];
 
-export const links = [{ id: 1, source: 2, target: 3, type: '0' }];
+export const links: SerializedLink[] = [{ id: 1, source: 2, target: 3, type: '0' }];
 ~~~
 
 ## 5. Create A Gantt Component

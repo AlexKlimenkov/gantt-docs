@@ -1,4 +1,4 @@
-﻿---
+---
 title: Installing Vue Gantt
 sidebar_label: Installation
 description: "How to install the evaluation or professional version of Vue Gantt via npm or yarn."
@@ -73,7 +73,6 @@ Use imports that match the package you installed.
 Wrapper peer dependency:
 
 - `vue >= 3.2.25`
-
 
 ## What To Read Next
 

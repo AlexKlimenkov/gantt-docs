@@ -37,12 +37,12 @@ If you use the professional package, replace `@dhtmlx/trial-vue-gantt` with `@dh
 
 ## 3. Add Demo Data
 
-Create `src/demoData.ts`:
+Create `src/demoData.ts` (for externally-owned data in Vue state, prefer `SerializedTask` / `SerializedLink`):
 
 ~~~ts title="src/demoData.ts"
-import type { Link, Task } from "@dhtmlx/trial-vue-gantt";
+import type { SerializedLink, SerializedTask } from "@dhtmlx/trial-vue-gantt";
 
-export const tasks: Task[] = [
+export const tasks: SerializedTask[] = [
   {
     id: 1,
     text: "Office itinerancy",
@@ -63,7 +63,7 @@ export const tasks: Task[] = [
   }
 ];
 
-export const links: Link[] = [{ id: 1, source: 1, target: 2, type: "0" }];
+export const links: SerializedLink[] = [{ id: 1, source: 1, target: 2, type: "0" }];
 ~~~
 
 ## 4. Create A Gantt Component
@@ -74,16 +74,16 @@ Create `src/components/GanttChart.vue`:
 <script setup lang="ts">
 import { ref } from "vue";
 import VueGantt, {
-  type Link,
-  type Task,
+  type SerializedLink,
+  type SerializedTask,
   type VueGanttDataConfig
 } from "@dhtmlx/trial-vue-gantt";
 import "@dhtmlx/trial-vue-gantt/dist/vue-gantt.css";
 
 import { links as initialLinks, tasks as initialTasks } from "../demoData";
 
-const tasks = ref<Task[]>(initialTasks);
-const links = ref<Link[]>(initialLinks);
+const tasks = ref<SerializedTask[]>(initialTasks);
+const links = ref<SerializedLink[]>(initialLinks);
 
 const data: VueGanttDataConfig = {
   save: (entity, action, item, id) => {
@@ -138,14 +138,14 @@ Use this when you want Vue state to stay in sync with chart edits before adding 
 const data: VueGanttDataConfig = {
   save: (entity, action, item, id) => {
     if (entity === "task") {
-      if (action === "create") tasks.value = [...tasks.value, item as Task];
-      if (action === "update") tasks.value = tasks.value.map(t => String(t.id) === String(id) ? item as Task : t);
+      if (action === "create") tasks.value = [...tasks.value, item as SerializedTask];
+      if (action === "update") tasks.value = tasks.value.map(t => String(t.id) === String(id) ? item as SerializedTask : t);
       if (action === "delete") tasks.value = tasks.value.filter(t => String(t.id) !== String(id));
     }
 
     if (entity === "link") {
-      if (action === "create") links.value = [...links.value, item as Link];
-      if (action === "update") links.value = links.value.map(l => String(l.id) === String(id) ? item as Link : l);
+      if (action === "create") links.value = [...links.value, item as SerializedLink];
+      if (action === "update") links.value = links.value.map(l => String(l.id) === String(id) ? item as SerializedLink : l);
       if (action === "delete") links.value = links.value.filter(l => String(l.id) !== String(id));
     }
   }
